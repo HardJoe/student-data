@@ -13,21 +13,21 @@ mongoose
     console.log('error connecting to MongoDB:', error.message);
   });
 
-app.use(express.json());
-
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
-
-app.get('/read', async (req, res) => {
-  const student = await Student.findOne({ npm: '1111111111' });
-  // const person = new Student({
-  //   name: 'test',
-  //   npm: '1111111111',
-  // });
-
-  // await person.save();
-  res.json(student);
+app.get('/npm/:npm', async (req, res) => {
+  const npm = req.params.npm;
+  try {
+    const student = await Student.findOne({ npm });
+    res.json({
+      status: 'OK',
+      npm,
+      nama: student.name,
+    });
+  } catch (err) {
+    res.json({
+      status: 'error',
+      message: 'student not found',
+    });
+  }
 });
 
 const port = process.env.PORT;
