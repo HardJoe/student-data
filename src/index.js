@@ -2,7 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
-const Student = require('./models/student');
+const ExpressRedisCache = require('express-redis-cache');
+const { findStudent } = require('./controllers/student');
+
+const cache = ExpressRedisCache({
+  expire: 60, // expired after 1 minute
+});
 
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -13,22 +18,9 @@ mongoose
     console.log('error connecting to MongoDB:', error.message);
   });
 
-app.get('/npm/:npm', async (req, res) => {
-  const npm = req.params.npm;
-  try {
-    const student = await Student.findOne({ npm });
-    res.json({
-      status: 'OK',
-      npm,
-      nama: student.name,
-    });
-  } catch (err) {
-    res.json({
-      status: 'error',
-      message: 'student not found',
-    });
-  }
-});
+app.get('/read/:npm/:trxId', cache.route(), findStudent);
+
+app.get('/read/:npm', findStudent);
 
 const port = process.env.PORT;
 
